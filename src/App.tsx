@@ -15,16 +15,12 @@ function App() {
       <BrowserRouter>
         <Navbar />
         <Routes>
-          <Route exact path="/" element={<HomePage />} />
-          <Route exact path="/login" element={<Login />} />
-          <Route exact path="/signup" element={<SignUp />} />
-          <Route exact path="/booking" element={<BookingPage />} />
-          <Route exact path="/profile" element={<ProfilePage />} />
-          <Route
-            exact
-            path="/medical-history"
-            element={<MedicalHistoryPage />}
-          />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/booking" element={<BookingPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/medical-history" element={<MedicalHistoryPage />} />
         </Routes>
         <Footer />
       </BrowserRouter>

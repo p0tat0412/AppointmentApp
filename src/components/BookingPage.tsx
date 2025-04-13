@@ -1,13 +1,22 @@
 import { FormEvent, useState } from "react";
 
-const BookingPage = () => {
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState<null | string>(null);
-  const [patientType, setPatientType] = useState("Yourself");
-  const [gender, setGender] = useState("");
-  const [problem, setProblem] = useState("");
+type Day = {
+  date: number;
+  day: string;
+};
 
-  const availableTimes = [
+type Gender = "Male" | "Female" | "Other" | "";
+
+const BookingPage = () => {
+  const [selectedDate, setSelectedDate] = useState<Day | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [patientType, setPatientType] = useState<
+    "Yourself" | "Another Student"
+  >("Yourself");
+  const [gender, setGender] = useState<Gender>("");
+  const [problem, setProblem] = useState<string>("");
+
+  const availableTimes: string[] = [
     "10:00 AM",
     "1:30 AM",
     "2:30 PM",
@@ -16,7 +25,7 @@ const BookingPage = () => {
     "1:30 PM",
   ];
 
-  const days = [
+  const days: Day[] = [
     { date: 22, day: "MON" },
     { date: 23, day: "TUE" },
     { date: 24, day: "THU" },
@@ -25,9 +34,12 @@ const BookingPage = () => {
     { date: 27, day: "SUN" },
   ];
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
+
+    // You could add validation logic here before submitting
     console.log({
+      selectedDate,
       selectedTime,
       patientType,
       gender,
@@ -44,6 +56,7 @@ const BookingPage = () => {
         </div>
 
         <div className="p-6 md:p-8">
+          {/* Select Date */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Select Date
@@ -58,27 +71,14 @@ const BookingPage = () => {
                       : "border-gray-200 hover:bg-blue-50 hover:border-blue-300 text-gray-900"
                     }`}
                 >
-                  <div
-                    className={`font-medium ${selectedDate?.date === day.date
-                        ? "text-white"
-                        : "text-gray-900"
-                      }`}
-                  >
-                    {day.date}
-                  </div>
-                  <div
-                    className={`text-sm ${selectedDate?.date === day.date
-                        ? "text-blue-100"
-                        : "text-gray-500"
-                      }`}
-                  >
-                    {day.day}
-                  </div>
+                  <div className="font-medium">{day.date}</div>
+                  <div className="text-sm">{day.day}</div>
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Select Time */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Available Time
@@ -99,6 +99,7 @@ const BookingPage = () => {
             </div>
           </div>
 
+          {/* Patient Details */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Patient Details
@@ -156,7 +157,7 @@ const BookingPage = () => {
                   {["Male", "Female", "Other"].map((option) => (
                     <button
                       key={option}
-                      onClick={() => setGender(option)}
+                      onClick={() => setGender(option as Gender)}
                       className={`py-2 px-4 rounded-md ${gender === option
                           ? "bg-blue-600 text-white"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -170,6 +171,7 @@ const BookingPage = () => {
             </div>
           </div>
 
+          {/* Problem Description */}
           <div className="mb-8">
             <label className="block text-xl font-semibold text-gray-800 mb-4">
               Describe your problem
@@ -182,6 +184,7 @@ const BookingPage = () => {
             />
           </div>
 
+          {/* Submit Button */}
           <button
             onClick={handleSubmit}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
