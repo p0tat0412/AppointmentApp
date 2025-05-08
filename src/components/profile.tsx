@@ -1,14 +1,39 @@
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useState, useEffect } from "react";
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState({
-    fullName: "David Brown",
-    email: "davidbrown12@gmail.com",
-    phoneNumber: "+61 123456789",
-    dateOfBirth: "05/06/2000",
+    fullName: "",
+    email: "",
+    mobileNumber: "",
+    dateOfBirth: "",
   });
 
   const [isEditing, setIsEditing] = useState(false);
+
+    // Fetch profile data when component mounts
+  useEffect(() => {
+    const fetchProfile = async () => {
+      let userInfo = localStorage.getItem("userInfo");
+      let user = JSON.parse(userInfo);
+      try {
+        const res = await fetch("http://localhost:5000/api/user/profile",{
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to fetch profile");
+
+        const data = await res.json();
+        console.log(data)
+        setProfile(data);
+      } catch (err) {
+        console.error("Error loading profile:", err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -18,11 +43,34 @@ const ProfilePage = () => {
     }));
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsEditing(false);
-    console.log("Profile updated:", profile);
+    const userInfo = localStorage.getItem("userInfo");
+  
+    try {
+      const response = await fetch("http://localhost:5000/api/user/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+        body: JSON.stringify(profile),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update profile");
+      }
+  
+      const result = await response.json();
+      console.log("Profile successfully updated:", result);
+  
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -87,13 +135,13 @@ const ProfilePage = () => {
                 <input
                   type="tel"
                   name="phoneNumber"
-                  value={profile.phoneNumber}
+                  value={profile.mobileNumber}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               ) : (
                 <p className="rounded-md bg-gray-100 px-3 py-2 text-gray-900">
-                  {profile.phoneNumber || "Not provided"}
+                  {profile.mobileNumber || "Not provided"}
                 </p>
               )}
             </div>

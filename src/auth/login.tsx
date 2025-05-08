@@ -1,16 +1,65 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  useEffect(() => {
+    const token = localStorage.getItem("userInfo");
+    if (token) {
+      navigate("/");
+    }
+  }, []);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Logging in with:", { email, password });
+  
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+  
+      const text = await response.text();
+  
+      let data;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (err) {
+        console.error("Failed to parse JSON:", err);
+        throw new Error("Invalid response from server");
+      }
+  
+      if (!response.ok) {
+        console.error("Login failed:", data);
+        throw new Error(data.message || "Login failed");
+      }
+  
+      console.log("Login successful:", data);
+      let userInfo = {
+        token: data.token,
+        id: data.user.id,
+        role: data.user.role
+      }
+      localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      if(data.user.role === 'doctor'){
+        navigate('/doctor/dashboard')
+      } else {
+        navigate('/');
+      }
+
+    } catch (error) {
+      console.error("Error during login:", error);
+    }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -178,13 +227,8 @@ function Login() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link to="/signup">
-              <a
-                href="#"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
+            <Link to="/signup" className="text-blue-600">
                 Sign Up
-              </a>
             </Link>
           </p>
         </div>

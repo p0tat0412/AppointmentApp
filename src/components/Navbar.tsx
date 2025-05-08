@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoMdNotifications } from "react-icons/io";
-import { Link } from "react-router-dom";
+import { Link, useNavigate  } from "react-router-dom";
 
 interface Notification {
   id: number;
@@ -13,6 +13,16 @@ interface Notification {
 
 const Navbar: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const navigate = useNavigate();
+
+  useEffect(()=>{
+    let token = localStorage.getItem("userInfo");
+    if(token){
+      setIsLoggedIn(true)
+    }
+  },[navigate])
+
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: 1,
@@ -91,6 +101,12 @@ const Navbar: React.FC = () => {
       default:
         return "ℹ️";
     }
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem("userInfo");
+    setIsLoggedIn(false);
+    navigate("/login");
   };
 
   return (
@@ -179,18 +195,29 @@ const Navbar: React.FC = () => {
               )}
             </div>
 
-            <Link
-              to="/login"
-              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
-            >
-              Sign Up
-            </Link>
+            {isLoggedIn ? (
+              <button
+                onClick={handleSignOut}
+                className="bg-red-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-600"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
