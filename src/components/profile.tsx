@@ -13,8 +13,9 @@ const ProfilePage = () => {
     // Fetch profile data when component mounts
   useEffect(() => {
     const fetchProfile = async () => {
-      let userInfo = localStorage.getItem("userInfo");
-      let user = JSON.parse(userInfo);
+    const userInfoStr = localStorage.getItem("userInfo");
+    const user = userInfoStr ? JSON.parse(userInfoStr) : null;
+
       try {
         const res = await fetch("http://localhost:5000/api/user/profile",{
           headers: {
@@ -45,14 +46,15 @@ const ProfilePage = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const userInfo = localStorage.getItem("userInfo");
-  
+    const userInfoStr = localStorage.getItem("userInfo");
+    const user = userInfoStr ? JSON.parse(userInfoStr) : null;
+
     try {
       const response = await fetch("http://localhost:5000/api/user/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${userInfo.token}`,
+          Authorization: user?.token ? `Bearer ${user.token}` : '',
         },
         body: JSON.stringify(profile),
       });

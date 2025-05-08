@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 
 type Gender = "Male" | "Female" | "Other" | "";
 type Day = { date: string; day: string };
-type Doctor = { id: string; name: string; specialty: string };
+type Doctor = { id: string; name: string; specialty: string, fullName: string, _id: string };
 
 const BookingPage = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -42,7 +42,6 @@ const BookingPage = () => {
       rawAvailability.forEach((entry: any) => {
         const availableTimes = entry.slots.filter((s: any) => s.available).map((s: any) => s.time);
         if (availableTimes.length) {
-          const dateObj = new Date();
           const weekdayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(entry.day);
           const diff = (7 + weekdayIndex - now.getDay()) % 7;
           const availableDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff);
@@ -88,14 +87,16 @@ const BookingPage = () => {
       return;
     }
 
-    let userId = JSON.parse(localStorage.getItem('userInfo')).id;
+    let userInfoStr = localStorage.getItem('userInfo');
+    const userId = userInfoStr ? JSON.parse(userInfoStr).id : null;
   
     const appointmentData = {
       doctorId: selectedDoctorId,
       patientId: userId,
-      date: selectedDate,
+      date: selectedDate.date,
       time: selectedTime,
       patientType,
+      fullName,
       gender, 
       problem,
     };
@@ -103,7 +104,7 @@ const BookingPage = () => {
     console.log(appointmentData)
     try {
       // Send data to backend to create appointment
-      const response = await fetch('/api/appointments', {
+      const response = await fetch(' http://localhost:5000/api/appointment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
