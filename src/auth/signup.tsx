@@ -2,7 +2,6 @@ import { FormEvent, useState, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 
-
 function SignUp() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -14,7 +13,7 @@ function SignUp() {
     role: "patient",
     // Doctor-specific fields
     specialty: "",
-    licenseNumber: ""
+    licenseNumber: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -27,39 +26,41 @@ function SignUp() {
     }
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const role = e.target.value;
     setIsDoctor(role === "doctor");
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       role,
       specialty: role === "doctor" ? prev.specialty : "",
-      licenseNumber: role === "doctor" ? prev.licenseNumber : ""
+      licenseNumber: role === "doctor" ? prev.licenseNumber : "",
     }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-  
+
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
-  
+
       const text = await response.text(); // Get raw response first
-  
+
       let data;
       try {
         data = text ? JSON.parse(text) : {};
@@ -67,19 +68,19 @@ function SignUp() {
         console.error("Failed to parse JSON:", jsonErr);
         throw new Error("Invalid response from server");
       }
-  
+
       if (!response.ok) {
         console.error("Registration failed:", data);
         throw new Error(data.message || "Registration failed");
       }
-  
+
       console.log("Registration successful:", data);
-      navigate('/')
+      navigate("/");
     } catch (error) {
       console.error("Error during registration:", error);
     }
   };
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-3 bg-white p-8 rounded-lg shadow-md">
@@ -251,11 +252,17 @@ function SignUp() {
           <div className="text-sm text-gray-600">
             <p>By continuing, you agree to our</p>
             <p>
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+              <a
+                href="#"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
                 Terms of Use
               </a>{" "}
               and{" "}
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+              <a
+                href="#"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
                 Privacy Policy
               </a>
             </p>
@@ -271,7 +278,10 @@ function SignUp() {
 
         <div className="text-center text-sm text-gray-600 mt-4">
           Already have an account?{" "}
-          <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+          <Link
+            to="/login"
+            className="font-medium text-blue-600 hover:text-blue-500"
+          >
             Sign In
           </Link>
         </div>

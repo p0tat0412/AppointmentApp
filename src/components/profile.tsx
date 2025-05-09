@@ -10,14 +10,14 @@ const ProfilePage = () => {
 
   const [isEditing, setIsEditing] = useState(false);
 
-    // Fetch profile data when component mounts
+  // Fetch profile data when component mounts
   useEffect(() => {
     const fetchProfile = async () => {
-    const userInfoStr = localStorage.getItem("userInfo");
-    const user = userInfoStr ? JSON.parse(userInfoStr) : null;
+      const userInfoStr = localStorage.getItem("userInfo");
+      const user = userInfoStr ? JSON.parse(userInfoStr) : null;
 
       try {
-        const res = await fetch("http://localhost:5000/api/user/profile",{
+        const res = await fetch("/api/user/profile", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${user.token}`,
@@ -26,7 +26,7 @@ const ProfilePage = () => {
         if (!res.ok) throw new Error("Failed to fetch profile");
 
         const data = await res.json();
-        console.log(data)
+        console.log(data);
         setProfile(data);
       } catch (err) {
         console.error("Error loading profile:", err);
@@ -50,29 +50,28 @@ const ProfilePage = () => {
     const user = userInfoStr ? JSON.parse(userInfoStr) : null;
 
     try {
-      const response = await fetch("http://localhost:5000/api/user/profile", {
+      const response = await fetch("/api/user/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: user?.token ? `Bearer ${user.token}` : '',
+          Authorization: user?.token ? `Bearer ${user.token}` : "",
         },
         body: JSON.stringify(profile),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to update profile");
       }
-  
+
       const result = await response.json();
       console.log("Profile successfully updated:", result);
-  
+
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
     }
   };
-  
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">

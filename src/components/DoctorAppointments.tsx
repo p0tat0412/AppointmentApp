@@ -19,7 +19,7 @@ const DoctorAppointments = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/appointment/doctor/${doctorId.id}`);
+        const res = await fetch(`/api/appointment/doctor/${doctorId.id}`);
         const data = await res.json();
         setAppointments(data);
       } catch (err) {
@@ -38,15 +38,22 @@ const DoctorAppointments = () => {
 
   return (
     <div className="p-6 bg-white min-h-screen">
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">Your Appointments</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-4">
+        Your Appointments
+      </h1>
       {appointments.length === 0 ? (
         <p className="text-gray-600">No appointments found.</p>
       ) : (
         <div className="space-y-4">
           {appointments.map((appt) => (
-            <div key={appt._id} className="bg-[#E0F2FE] p-4 rounded-xl shadow-md flex justify-between items-center">
+            <div
+              key={appt._id}
+              className="bg-[#E0F2FE] p-4 rounded-xl shadow-md flex justify-between items-center"
+            >
               <div>
-                <p className="text-gray-900 font-semibold">{appt.patient?.fullName || "Unnamed Patient"}</p>
+                <p className="text-gray-900 font-semibold">
+                  {appt.patient?.fullName || "Unnamed Patient"}
+                </p>
                 <p className="text-gray-700 text-sm">
                   {appt.date} at {appt.time} – {appt.problem}
                 </p>

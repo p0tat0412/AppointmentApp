@@ -2,7 +2,13 @@ import { FormEvent, useEffect, useState } from "react";
 
 type Gender = "Male" | "Female" | "Other" | "";
 type Day = { date: string; day: string };
-type Doctor = { id: string; name: string; specialty: string, fullName: string, _id: string };
+type Doctor = {
+  id: string;
+  name: string;
+  specialty: string;
+  fullName: string;
+  _id: string;
+};
 
 const BookingPage = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -11,16 +17,17 @@ const BookingPage = () => {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Day | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [fullName, setFullName] = useState<string>()
-;
-  const [patientType, setPatientType] = useState<"Yourself" | "Another Student">("Yourself");
+  const [fullName, setFullName] = useState<string>();
+  const [patientType, setPatientType] = useState<
+    "Yourself" | "Another Student"
+  >("Yourself");
   const [gender, setGender] = useState<Gender>("");
   const [problem, setProblem] = useState<string>("");
 
   useEffect(() => {
     // Fetch list of doctors
     const fetchDoctors = async () => {
-      const res = await fetch("http://localhost:5000/api/doctor");
+      const res = await fetch("/api/doctor");
       const data = await res.json();
       setDoctors(data);
     };
@@ -33,18 +40,32 @@ const BookingPage = () => {
 
     // Fetch available dates and times for selected doctor
     const fetchAvailability = async () => {
-      const res = await fetch(`http://localhost:5000/api/doctor/availability/${selectedDoctorId}`);
+      const res = await fetch(`/api/doctor/availability/${selectedDoctorId}`);
       const data = await res.json();
       const rawAvailability = data.availability; // assuming array of { day, slots: [{ time, available }] }
 
       const validDays: Day[] = [];
       const now = new Date();
       rawAvailability.forEach((entry: any) => {
-        const availableTimes = entry.slots.filter((s: any) => s.available).map((s: any) => s.time);
+        const availableTimes = entry.slots
+          .filter((s: any) => s.available)
+          .map((s: any) => s.time);
         if (availableTimes.length) {
-          const weekdayIndex = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(entry.day);
+          const weekdayIndex = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ].indexOf(entry.day);
           const diff = (7 + weekdayIndex - now.getDay()) % 7;
-          const availableDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff);
+          const availableDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() + diff,
+          );
           validDays.push({
             date: availableDate.toISOString().split("T")[0],
             day: entry.day,
@@ -64,12 +85,16 @@ const BookingPage = () => {
     if (!selectedDoctorId || !selectedDate) return;
 
     const fetchAvailability = async () => {
-      const res = await fetch(`http://localhost:5000/api/doctor/availability/${selectedDoctorId}`);
+      const res = await fetch(`/api/doctor/availability/${selectedDoctorId}`);
       const data = await res.json();
 
-      const dayEntry = data.availability.find((entry: any) => entry.day === selectedDate.day);
+      const dayEntry = data.availability.find(
+        (entry: any) => entry.day === selectedDate.day,
+      );
       if (dayEntry) {
-        const times = dayEntry.slots.filter((s: any) => s.available).map((s: any) => s.time);
+        const times = dayEntry.slots
+          .filter((s: any) => s.available)
+          .map((s: any) => s.time);
         setAvailableTimes(times);
       } else {
         setAvailableTimes([]);
@@ -81,15 +106,15 @@ const BookingPage = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
-  
+
     if (!selectedDoctorId || !selectedDate || !selectedTime) {
       alert("Please fill all required fields.");
       return;
     }
 
-    let userInfoStr = localStorage.getItem('userInfo');
+    let userInfoStr = localStorage.getItem("userInfo");
     const userId = userInfoStr ? JSON.parse(userInfoStr).id : null;
-  
+
     const appointmentData = {
       doctorId: selectedDoctorId,
       patientId: userId,
@@ -97,35 +122,34 @@ const BookingPage = () => {
       time: selectedTime,
       patientType,
       fullName,
-      gender, 
+      gender,
       problem,
     };
-  
-    console.log(appointmentData)
+
+    console.log(appointmentData);
     try {
       // Send data to backend to create appointment
-      const response = await fetch(' http://localhost:5000/api/appointment', {
-        method: 'POST',
+      const response = await fetch("/api/appointment", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(appointmentData),
       });
-  
+
       if (response.ok) {
         // Handle success (appointment successfully booked)
         alert("Appointment booked successfully.");
       } else {
         // If the response is not ok (e.g., 400 or 500 error)
         const errorData = await response.json();
-        alert(`Error: ${errorData.message || 'Failed to book appointment'}`);
+        alert(`Error: ${errorData.message || "Failed to book appointment"}`);
       }
     } catch (err) {
       console.error("Error booking appointment:", err);
       alert("There was an error booking your appointment. Please try again.");
     }
   };
-  
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -158,7 +182,9 @@ const BookingPage = () => {
           {/* Select Date */}
           {availableDates.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Select Date</h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Select Date
+              </h2>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-4">
                 {availableDates.map((day, index) => (
                   <button
@@ -180,7 +206,9 @@ const BookingPage = () => {
           {/* Time Selection */}
           {selectedDate && availableTimes.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Available Time</h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Available Time
+              </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {availableTimes.map((time, index) => (
                   <button
@@ -200,7 +228,9 @@ const BookingPage = () => {
 
           {/* Patient Info */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Patient Details</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Patient Details
+            </h2>
 
             <div className="flex space-x-4 mb-6">
               <button
@@ -231,14 +261,16 @@ const BookingPage = () => {
                 <input
                   type="text"
                   value={fullName}
-                  onChange={(e)=>setFullName(e.target.value)}
+                  onChange={(e) => setFullName(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   placeholder="Jane Doe"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Age
+                </label>
                 <input
                   type="number"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -247,7 +279,9 @@ const BookingPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gender
+                </label>
                 <div className="flex space-x-3">
                   {["Male", "Female", "Other"].map((option) => (
                     <button

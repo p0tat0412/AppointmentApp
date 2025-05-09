@@ -17,18 +17,18 @@ function Login() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-  
+
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
-  
+
       const text = await response.text();
-  
+
       let data;
       try {
         data = text ? JSON.parse(text) : {};
@@ -36,30 +36,28 @@ function Login() {
         console.error("Failed to parse JSON:", err);
         throw new Error("Invalid response from server");
       }
-  
+
       if (!response.ok) {
         console.error("Login failed:", data);
         throw new Error(data.message || "Login failed");
       }
-  
+
       console.log("Login successful:", data);
       let userInfo = {
         token: data.token,
         id: data.user.id,
-        role: data.user.role
-      }
-      localStorage.setItem('userInfo', JSON.stringify(userInfo));
-      if(data.user.role === 'doctor'){
-        navigate('/doctor/dashboard')
+        role: data.user.role,
+      };
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
+      if (data.user.role === "doctor") {
+        navigate("/doctor/dashboard");
       } else {
-        navigate('/');
+        navigate("/");
       }
-
     } catch (error) {
       console.error("Error during login:", error);
     }
   };
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -228,7 +226,7 @@ function Login() {
           <p className="text-sm text-gray-600">
             Don't have an account?{" "}
             <Link to="/signup" className="text-blue-600">
-                Sign Up
+              Sign Up
             </Link>
           </p>
         </div>
