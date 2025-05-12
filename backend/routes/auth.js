@@ -3,6 +3,14 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const router = express.Router();
 const jwt = require("jsonwebtoken");
+const { uuid } = require('uuidv4');
+const {ddbClient} = require("../dynamodbClient");
+
+const {
+  PutCommand,
+  GetCommand,
+  QueryCommand
+} = require("@aws-sdk/lib-dynamodb");
 
 const generateToken = (userId, role) => {
   return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
@@ -10,79 +18,100 @@ const generateToken = (userId, role) => {
   });
 };
 
+const TABLE_NAME = "Users"
+
 // Register
-router.post('/register', async (req, res) => {
-  console.log('Incoming registration data:', req.body);
+router.post("/register", async (req, res) => {
   try {
-    const { password, ...userData } = req.body;
-    
-    // Validate required fields
-    if (!userData.email || !password || !userData.fullName) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    const { password, email, fullName, role, mobileNumber, dateOfBirth, specialty, licenseNumber } = req.body;
+
+    if (!email || !password || !fullName) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Check for existing user
-    const existingUser = await User.findOne({ email: userData.email });
-    if (existingUser) {
-      return res.status(409).json({ message: 'Email already exists' });
+    const id = uuid();
+
+    // Check if user exists
+    const existing = await ddbClient.send(new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { id },
+    }));
+
+    if (existing.Item) {
+      return res.status(409).json({ message: "Email already exists" });
     }
 
-    // Create user (password hashed via pre-save hook)
-    const user = new User({ ...userData, password });
-    await user.save();
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = {
+      id,
+      email,
+      fullName,
+      password: hashedPassword,
+      role,
+      mobileNumber,
+      dateOfBirth,
+      specialty,
+      licenseNumber,
+    };
 
-    // Generate JWT
-    const token = generateToken(user._id, user.role);
+    await ddbClient.send(new PutCommand({
+      TableName: TABLE_NAME,
+      Item: user,
+    }));
+
+    const token = generateToken(email, role);
 
     res.status(201).json({
       token,
       user: {
-        id: user._id,
-        role: user.role,
-        name: user.fullName,
-        email: user.email
-      }
+        id,
+        email,
+        name: fullName,
+        role,
+      },
     });
 
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'Registration failed', error: error.message });
+    console.error("Registration error:", error);
+    res.status(500).json({ message: "Registration failed", error: error.message });
   }
 });
 
-// Login 
-router.post('/login', async (req, res) => {
+// Login
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    const result = await ddbClient.send(new QueryCommand({
+      TableName: TABLE_NAME,
+      IndexName: "email-index",
+      KeyConditionExpression: "email = :email",
+      ExpressionAttributeValues: {
+        ":email": email,
+      },
+    }));
+
+    const user = result.Items?.[0];
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // Generate JWT
-    const token = generateToken(user._id, user.role);
+    const token = generateToken(user.id, user.role);
 
     res.json({
       token,
       user: {
-        id: user._id,
-        role: user.role,
+        id: user.id,
+        email: user.email,
         name: user.fullName,
-        email: user.email
-      }
+        role: user.role,
+      },
     });
 
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Login failed' });
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Login failed", error: error.message });
   }
 });
 

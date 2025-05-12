@@ -7,6 +7,8 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   useEffect(() => {
     const token = localStorage.getItem("userInfo");
@@ -38,6 +40,8 @@ function Login() {
       }
 
       if (!response.ok) {
+        setError(true)
+        setErrorMessage(data.message );
         console.error("Login failed:", data);
         throw new Error(data.message || "Login failed");
       }
@@ -128,6 +132,7 @@ function Login() {
               </div>
             </div>
           </div>
+          
 
           <div className="flex items-center justify-end">
             <div className="text-sm">
@@ -139,6 +144,23 @@ function Login() {
               </a>
             </div>
           </div>
+          
+          
+          {
+            error ? (
+          <div className="flex items-center justify-center">
+            <div className="text-sm font-medium text-red-600">
+              {errorMessage}
+            </div>
+          </div>
+            ):(
+              <>
+              
+              </>
+            )
+          }
+
+
 
           <div>
             <button

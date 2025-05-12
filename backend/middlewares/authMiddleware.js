@@ -1,5 +1,8 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // Adjust path if needed
+const { ddbClient } = require("../dynamodbClient");
+const { GetCommand } = require("@aws-sdk/lib-dynamodb");
+
+const TABLE_NAME = "Users";
 
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -12,12 +15,25 @@ const authMiddleware = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select("-password");
-    if (!req.user) {
+
+    const userResponse = await ddbClient.send(new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { id: decoded.id },  // Assuming 'id' is your partition key
+    }));
+
+    const user = userResponse.Item;
+
+    if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
+
+    // Remove password before attaching to req.user
+    const { password, ...safeUser } = user;
+    req.user = safeUser;
+
     next();
   } catch (error) {
+    console.error("Auth error:", error);
     res.status(401).json({ message: "Invalid token" });
   }
 };

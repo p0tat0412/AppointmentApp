@@ -37,7 +37,6 @@ const BookingPage = () => {
 
   useEffect(() => {
     if (!selectedDoctorId) return;
-
     // Fetch available dates and times for selected doctor
     const fetchAvailability = async () => {
       const res = await fetch(`/api/doctor/availability/${selectedDoctorId}`);
@@ -60,14 +59,16 @@ const BookingPage = () => {
             "Friday",
             "Saturday",
           ].indexOf(entry.day);
-          const diff = (7 + weekdayIndex - now.getDay()) % 7;
-          const availableDate = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate() + diff,
+          const currentUTCDate = new Date(
+            Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
           );
+
+          const diff = (7 + weekdayIndex - currentUTCDate.getUTCDay()) % 7;
+          const availableDateUTC = new Date(currentUTCDate);
+          availableDateUTC.setUTCDate(currentUTCDate.getUTCDate() + diff);
+
           validDays.push({
-            date: availableDate.toISOString().split("T")[0],
+            date: availableDateUTC.toISOString().split("T")[0],
             day: entry.day,
           });
         }
@@ -172,7 +173,7 @@ const BookingPage = () => {
             >
               <option value="">-- Choose a doctor --</option>
               {doctors.map((doc) => (
-                <option key={doc._id} value={doc._id}>
+                <option key={doc.id} value={doc.id}>
                   {doc.fullName} – {doc.specialty}
                 </option>
               ))}
