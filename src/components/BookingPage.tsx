@@ -7,7 +7,6 @@ type Doctor = {
   name: string;
   specialty: string;
   fullName: string;
-  _id: string;
 };
 
 const BookingPage = () => {

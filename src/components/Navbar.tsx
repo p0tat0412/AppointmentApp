@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoMdNotifications } from "react-icons/io";
 import { Link, useNavigate  } from "react-router-dom";
+import DoctorNavbar from "./DoctorNavbar";
 
 interface Notification {
   id: number;
@@ -14,11 +15,14 @@ interface Notification {
 const Navbar: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isDoctor, setIsDoctor] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(()=>{
     let token = localStorage.getItem("userInfo");
     if(token){
+      let role = JSON.parse(token).role;
+      setIsDoctor(role === 'doctor')
       setIsLoggedIn(true)
     }
   },[navigate])
@@ -110,7 +114,12 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="bg-white shadow-lg">
+    <>
+    {
+      isDoctor ? (
+        <DoctorNavbar />
+      ):(
+      <nav className="bg-white shadow-lg">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0 flex items-center">
@@ -222,6 +231,9 @@ const Navbar: React.FC = () => {
         </div>
       </div>
     </nav>
+      )
+    }
+    </>
   );
 };
 

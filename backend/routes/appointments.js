@@ -96,6 +96,31 @@ router.get('/doctor/:doctorId', async (req, res) => {
   }
 });
 
+// GET /api/appointments/patient/:patientId
+router.get('/patient/:patientId', async (req, res) => {
+  try {
+    const patientId = req.params.patientId;
+    const result = await ddbClient.send(new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: 'patientId = :patientId',
+      ExpressionAttributeValues: {
+        ':patientId': patientId
+      }
+    }));
+
+    const sortedAppointments = result.Items.sort((a, b) => {
+      const aDateTime = new Date(`${a.date} ${a.time}`);
+      const bDateTime = new Date(`${b.date} ${b.time}`);
+      return aDateTime - bDateTime;
+    });
+
+    res.json(sortedAppointments);
+  } catch (err) {
+    console.error('Error fetching appointments:', err);
+    res.status(500).json({ message: 'Error fetching appointments' });
+  }
+});
+
 // routes/appointments.js
 router.put('/:id/feedback', async (req, res) => {
   const { symptoms, diagnosis, medications, followUps } = req.body;

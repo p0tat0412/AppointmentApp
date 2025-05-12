@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import "./App.css";
 import Login from "./auth/login";
 import SignUp from "./auth/signup";
@@ -12,37 +12,14 @@ import Footer from "./components/Footer";
 import DoctorDashboard from "./components/DoctorDashboard";
 import DoctorAppointments from "./components/DoctorAppointments";
 import DoctorAvailability from "./components/DoctorAvailability";
-import DoctorNavbar from "./components/DoctorNavbar";
 
-function App() {
-  const [user, setUser] = useState<{ role: string } | null>(null);
-  const [version, setVersion] = useState(0);
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setVersion((v) => v + 1); // force re-render
-    };
-  
-    window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    const userInfo = localStorage.getItem("userInfo");
-    if (userInfo) {
-      const parsed = JSON.parse(userInfo);
-      setUser(parsed);
-    }
-  }, []);
-
-  const isDoctor = user?.role === "doctor";
+function AppContent() {
+  const location = useLocation();
+  const hideNavbarRoutes = ["/login", "/signup"];
 
   return (
-    <div key={version}>
-    <BrowserRouter>
-      {isDoctor ? <DoctorNavbar /> : <Navbar />}
+    <>
+      {!hideNavbarRoutes.includes(location.pathname) && <Navbar />}
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
@@ -55,8 +32,15 @@ function App() {
         <Route path="/doctor/availability" element={<DoctorAvailability />} />
       </Routes>
       <Footer />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
-    </div>
   );
 }
 
