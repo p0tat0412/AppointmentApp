@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const DoctorDashboard = () => {
+  const [fullName, setFullName] = useState("");
   const sections = [
     {
       title: "Appointments",
@@ -19,8 +21,41 @@ const DoctorDashboard = () => {
     },
   ];
 
+    // Fetch profile data when component mounts
+    useEffect(() => {
+      const fetchProfile = async () => {
+        const userInfoStr = localStorage.getItem("userInfo");
+        const user = userInfoStr ? JSON.parse(userInfoStr) : null;
+  
+        try {
+          const res = await fetch("/api/user/profile", {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.token}`,
+            },
+          });
+          if (!res.ok) throw new Error("Failed to fetch profile");
+  
+          const data = await res.json();
+          console.log(data);
+          setFullName(data.fullName);
+        } catch (err) {
+          console.error("Error loading profile:", err);
+        }
+      };
+  
+      fetchProfile();
+    }, []);
+
   return (
     <div className="min-h-screen bg-[#F9FAFB] p-6 md:p-12">
+
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+          Hi, Welcome back
+        </h1>
+        <p className="text-2xl text-gray-600">{fullName}</p>
+      </div>
       <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
         Doctor Dashboard
       </h1>

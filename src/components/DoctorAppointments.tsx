@@ -28,20 +28,13 @@ const DoctorAppointments = () => {
   const doctorIdStr = localStorage.getItem("userInfo");
   const doctorId = doctorIdStr ? JSON.parse(doctorIdStr) : null;
 
-  const now = new Date();
-  const todayStr = now.toISOString().split("T")[0]; // yyyy-mm-dd
+  const today = new Date().toISOString().split("T")[0];
 
-  const isPast = (appt: Appointment) => {
-    const apptDateTime = new Date(`${appt.date}T${appt.time}`);
-    return apptDateTime < now;
-  };
+  const todaysAppointments = appointments.filter(a => a.date === today);
+  const futureAppointments = appointments.filter(a => a.date > today);
+  const past = appointments.filter(a => a.date < today);
 
-  const isToday = (appt: Appointment) => appt.date === todayStr;
 
-  const upcoming = appointments.filter((a) => !isPast(a));
-  const todaysAppointments = upcoming.filter(isToday);
-  const futureAppointments = upcoming.filter((a) => !isToday(a));
-  const past = appointments.filter((a) => isPast(a));
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -61,7 +54,7 @@ const DoctorAppointments = () => {
 
   const handleViewDetails = async (appt: Appointment) => {
     setSelectedAppt(appt);
-    setIsEditing(!isPast(appt));
+    setIsEditing(!(appt.date < today));
 
     try {
       const res = await fetch(`/api/appointment/${appt.appointmentId}/feedback`);
@@ -191,6 +184,7 @@ const DoctorAppointments = () => {
             <p><strong>Problem:</strong> {selectedAppt.problem}</p>
 
             <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+              <label className="font-bold">Symptoms</label>
               <textarea
                 placeholder="Symptoms"
                 value={selectedAppt.symptoms || " "}
@@ -198,6 +192,7 @@ const DoctorAppointments = () => {
                 className="w-full p-2 border rounded"
                 disabled={!isEditing}
               />
+              <label className="font-bold">Diagnosis</label>              
               <textarea
                 placeholder="Diagnosis"
                 value={selectedAppt.diagnosis || " "}
@@ -205,6 +200,7 @@ const DoctorAppointments = () => {
                 className="w-full p-2 border rounded"
                 disabled={!isEditing}
               />
+              <label className="font-bold">Medications</label>
               <textarea
                 placeholder="Medications"
                 value={selectedAppt.medications || " "}
@@ -212,6 +208,7 @@ const DoctorAppointments = () => {
                 className="w-full p-2 border rounded"
                 disabled={!isEditing}
               />
+              <label className="font-bold">Follow Ups</label>
               <textarea
                 placeholder="Follow-ups"
                 value={selectedAppt.followUps || " "}
